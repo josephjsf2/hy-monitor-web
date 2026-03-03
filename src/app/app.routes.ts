@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -12,18 +13,22 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'websites',
-    loadComponent: () => import('./features/websites/websites.component').then(m => m.WebsitesComponent)
+    loadComponent: () => import('./features/websites/websites.component').then(m => m.WebsitesComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'websites/:id',
-    loadComponent: () => import('./features/websites/website-detail/website-detail.component').then(m => m.WebsiteDetailComponent)
+    loadComponent: () => import('./features/websites/website-detail/website-detail.component').then(m => m.WebsiteDetailComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'tags',
-    loadComponent: () => import('./features/tags/tags.component').then(m => m.TagsComponent)
+    loadComponent: () => import('./features/tags/tags.component').then(m => m.TagsComponent),
+    canActivate: [authGuard]
   }
 ];
