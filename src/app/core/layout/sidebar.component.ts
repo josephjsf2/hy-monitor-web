@@ -8,25 +8,15 @@ import { AuthService } from '../services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   styles: [`
-    /* Sidebar container with deep dark background */
     .sidebar-container {
-      background: linear-gradient(180deg, #06090f 0%, var(--color-bg-primary) 100%);
-      border-right: 1px solid rgba(6, 182, 212, 0.1);
+      background: #1C1917;
+      border-right: 1px solid #292524;
     }
 
-    /* Logo gradient text */
-    .logo-gradient {
-      background: linear-gradient(135deg, var(--color-accent-cyan) 0%, var(--color-accent-cyan-light) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: var(--shadow-glow-cyan);
-    }
-
-    /* Navigation item styles */
     .nav-item {
       position: relative;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #A8A29E;
+      transition: all 0.3s ease;
     }
 
     .nav-item::before {
@@ -36,41 +26,41 @@ import { AuthService } from '../services/auth.service';
       top: 0;
       bottom: 0;
       width: 3px;
-      background: var(--color-accent-cyan);
+      background: #14B8A6;
       transform: scaleY(0);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-glow-cyan);
+      transition: transform 0.3s ease;
     }
 
     .nav-item:hover {
-      background: rgba(6, 182, 212, 0.05);
-      transform: translateX(2px);
+      background: rgba(41, 37, 36, 0.5);
+      color: #E7E5E4;
     }
 
-    .nav-item:hover .nav-icon {
-      color: var(--color-accent-cyan-light);
-      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.6));
-    }
-
-    /* Active nav item */
     .nav-item-active {
-      background: rgba(6, 182, 212, 0.1);
+      background: rgba(41, 37, 36, 0.3);
+      color: #14B8A6;
     }
 
     .nav-item-active::before {
       transform: scaleY(1);
     }
 
-    .nav-item-active .nav-icon {
-      color: var(--color-accent-cyan);
-      filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
+    .nav-icon {
+      transition: color 0.3s ease;
     }
 
-    /* User avatar circle */
+    .nav-item:hover .nav-icon {
+      color: #E7E5E4;
+    }
+
+    .nav-item-active .nav-icon {
+      color: #14B8A6;
+    }
+
     .user-avatar {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, var(--color-accent-cyan) 0%, var(--color-accent-cyan-dark) 100%);
+      background: #0F766E;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -78,7 +68,6 @@ import { AuthService } from '../services/auth.service';
       font-weight: 700;
       font-size: 1.125rem;
       color: white;
-      box-shadow: var(--shadow-glow-cyan);
     }
 
     .user-avatar-collapsed {
@@ -87,49 +76,36 @@ import { AuthService } from '../services/auth.service';
       font-size: 0.875rem;
     }
 
-    /* Pulse dot for live monitoring */
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--color-accent-cyan);
-      border-radius: 50%;
-      animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
-    }
-
-    @keyframes pulse-glow {
-      0%, 100% {
-        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
-      }
-      50% {
-        box-shadow: 0 0 0 6px rgba(6, 182, 212, 0);
-      }
-    }
-
-    /* Separator line */
     .separator {
       height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%);
+      background: #292524;
     }
 
-    /* Logout button hover effect */
+    .logout-btn {
+      color: #A8A29E;
+      transition: all 0.3s ease;
+    }
+
     .logout-btn:hover {
-      background: rgba(239, 68, 68, 0.1);
+      background: #292524;
+      color: #F87171;
+    }
+
+    .logout-icon {
+      transition: color 0.3s ease;
     }
 
     .logout-btn:hover .logout-icon {
-      color: var(--color-accent-coral);
-      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+      color: #F87171;
     }
 
-    /* Tooltip for collapsed state */
     .nav-tooltip {
       position: absolute;
       left: calc(100% + 12px);
       top: 50%;
       transform: translateY(-50%);
-      background: var(--color-bg-secondary);
-      color: var(--color-text-primary);
+      background: #292524;
+      color: #E7E5E4;
       padding: 0.5rem 0.75rem;
       border-radius: 0.375rem;
       font-size: 0.875rem;
@@ -137,8 +113,7 @@ import { AuthService } from '../services/auth.service';
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.2s ease;
-      border: 1px solid var(--color-border);
-      box-shadow: var(--shadow-glow-cyan);
+      border: 1px solid #44403C;
       z-index: 50;
     }
 
@@ -158,14 +133,14 @@ import { AuthService } from '../services/auth.service';
         <div class="flex items-center gap-3">
           @if (!collapsed()) {
             <div class="flex-1">
-              <h1 class="text-2xl font-bold tracking-tight">
-                <span class="logo-gradient">HY</span>
-                <span class="text-[var(--color-text-secondary)] ml-1 font-light">Monitor</span>
+              <h1 class="text-2xl font-serif tracking-tight">
+                <span class="text-teal-500">HY</span>
+                <span class="text-stone-400 ml-1 font-light">Monitor</span>
               </h1>
             </div>
           } @else {
             <div class="flex items-center justify-center w-full">
-              <span class="logo-gradient text-2xl font-bold">HY</span>
+              <span class="text-teal-500 text-2xl font-serif font-bold">HY</span>
             </div>
           }
         </div>
@@ -186,10 +161,7 @@ import { AuthService } from '../services/auth.service';
               >
                 <span class="nav-icon flex-shrink-0 transition-all duration-300" [innerHTML]="item.icon"></span>
                 @if (!collapsed()) {
-                  <span class="truncate text-[var(--color-text-primary)] font-medium">{{ item.label }}</span>
-                  @if (item.path === '/dashboard') {
-                    <span class="pulse-dot ml-auto"></span>
-                  }
+                  <span class="truncate font-medium">{{ item.label }}</span>
                 } @else {
                   <span class="nav-tooltip">{{ item.label }}</span>
                 }
@@ -215,7 +187,7 @@ import { AuthService } from '../services/auth.service';
             }
           </svg>
           @if (!collapsed()) {
-            <span class="truncate text-[var(--color-text-primary)] font-medium">收起選單</span>
+            <span class="truncate font-medium">收起選單</span>
           } @else {
             <span class="nav-tooltip">展開選單</span>
           }
@@ -234,8 +206,8 @@ import { AuthService } from '../services/auth.service';
                   {{ userInitial() }}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs text-[var(--color-text-muted)] truncate">登入使用者</p>
-                  <p class="font-semibold text-[var(--color-text-primary)] truncate text-sm">{{ currentUser()!.displayName }}</p>
+                  <p class="text-xs text-stone-500 truncate">登入使用者</p>
+                  <p class="font-semibold text-stone-200 truncate text-sm">{{ currentUser()!.displayName }}</p>
                 </div>
               </div>
             } @else {
@@ -254,7 +226,7 @@ import { AuthService } from '../services/auth.service';
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               @if (!collapsed()) {
-                <span class="truncate text-[var(--color-text-primary)] font-medium">登出</span>
+                <span class="truncate font-medium">登出</span>
               } @else {
                 <span class="nav-tooltip">登出</span>
               }
