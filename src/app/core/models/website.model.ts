@@ -42,3 +42,14 @@ export interface StatusUpdateMessage {
   responseMs: number;
   checkedAt: string;
 }
+
+export interface HourlyStatsResponse {
+  hourBucket: string;
+  checkCount: number;
+  upCount: number;
+  downCount: number;
+  slowCount: number;
+  avgResponseMs: number | null;
+  minResponseMs: number | null;
+  maxResponseMs: number | null;
+}

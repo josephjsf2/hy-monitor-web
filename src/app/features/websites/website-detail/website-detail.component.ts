@@ -108,7 +108,7 @@ import { WebsiteResponse, CheckResult, HourlyStatsResponse } from '../../../core
         </div>
 
         <!-- 回應時間圖表 -->
-        @if (history.length > 0) {
+        @if (chartData.length > 0) {
           <div class="bg-white border border-stone-200 rounded-xl p-6 mb-6">
             <h2 class="font-semibold text-stone-800 text-lg mb-6">回應時間趨勢</h2>
             <svg class="w-full h-48" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
@@ -152,7 +152,7 @@ import { WebsiteResponse, CheckResult, HourlyStatsResponse } from '../../../core
               }
 
               <!-- Y-axis labels -->
-              <text x="5" y="25" class="text-xs" fill="#78716C">{{ maxResponseMs }}ms</text>
+              <text x="5" y="25" class="text-xs" fill="#78716C">{{ maxChartValue }}ms</text>
               <text x="5" y="185" class="text-xs" fill="#78716C">0ms</text>
             </svg>
           </div>
@@ -342,25 +342,54 @@ export class WebsiteDetailComponent implements OnInit {
     return this.history.slice(0, this.displayLimit);
   }
 
-  get maxResponseMs(): number {
-    const valid = this.history.filter(h => h.responseMs > 0);
-    if (valid.length === 0) return 100;
-    return Math.max(...valid.map(r => r.responseMs));
+  // 使用 hourlyStats 或 history 作為圖表數據
+  get chartData(): Array<{value: number, status: 'UP' | 'DOWN' | 'SLOW'}> {
+    // 優先使用 hourlyStats
+    if (this.hourlyStats.length > 0) {
+      return this.hourlyStats
+        .filter(s => s.avgResponseMs !== null)
+        .map(s => {
+          const totalUp = s.upCount + s.slowCount;
+          const status: 'UP' | 'DOWN' | 'SLOW' =
+            s.downCount > totalUp ? 'DOWN' :
+            s.slowCount > s.upCount ? 'SLOW' : 'UP';
+          return {
+            value: s.avgResponseMs!,
+            status
+          };
+        });
+    }
+
+    // 回退到使用 history
+    return this.history
+      .slice(0, 50)
+      .reverse()
+      .map(h => ({
+        value: h.responseMs || 0,
+        status: h.status
+      }));
+  }
+
+  get maxChartValue(): number {
+    if (this.chartData.length === 0) return 100;
+    const values = this.chartData.map(d => d.value).filter(v => v > 0);
+    if (values.length === 0) return 100;
+    return Math.max(...values);
   }
 
   // 建立 SVG 圖表路徑
   get chartPoints(): string {
-    if (this.history.length === 0) return '';
+    if (this.chartData.length === 0) return '';
 
-    const data = this.history.slice(0, 50).reverse(); // 取最近 50 筆，反轉為時間正序
-    const maxMs = this.maxResponseMs;
+    const data = this.chartData;
+    const maxValue = this.maxChartValue;
     const width = 800;
     const height = 200;
     const padding = 20;
 
-    const points = data.map((r, i) => {
+    const points = data.map((d, i) => {
       const x = padding + (i / Math.max(data.length - 1, 1)) * (width - 2 * padding);
-      const y = height - padding - ((r.responseMs || 0) / maxMs) * (height - 2 * padding);
+      const y = height - padding - (d.value / maxValue) * (height - 2 * padding);
       return `${x},${y}`;
     });
 
@@ -368,17 +397,17 @@ export class WebsiteDetailComponent implements OnInit {
   }
 
   get chartAreaPath(): string {
-    if (this.history.length === 0) return '';
+    if (this.chartData.length === 0) return '';
 
-    const data = this.history.slice(0, 50).reverse();
-    const maxMs = this.maxResponseMs;
+    const data = this.chartData;
+    const maxValue = this.maxChartValue;
     const width = 800;
     const height = 200;
     const padding = 20;
 
-    const points = data.map((r, i) => {
+    const points = data.map((d, i) => {
       const x = padding + (i / Math.max(data.length - 1, 1)) * (width - 2 * padding);
-      const y = height - padding - ((r.responseMs || 0) / maxMs) * (height - 2 * padding);
+      const y = height - padding - (d.value / maxValue) * (height - 2 * padding);
       return [x, y];
     });
 
@@ -396,21 +425,21 @@ export class WebsiteDetailComponent implements OnInit {
   }
 
   get chartPointsArray(): Array<{x: number, y: number, color: string}> {
-    if (this.history.length === 0) return [];
+    if (this.chartData.length === 0) return [];
 
-    const data = this.history.slice(0, 50).reverse();
-    const maxMs = this.maxResponseMs;
+    const data = this.chartData;
+    const maxValue = this.maxChartValue;
     const width = 800;
     const height = 200;
     const padding = 20;
 
-    return data.map((r, i) => {
+    return data.map((d, i) => {
       const x = padding + (i / Math.max(data.length - 1, 1)) * (width - 2 * padding);
-      const y = height - padding - ((r.responseMs || 0) / maxMs) * (height - 2 * padding);
+      const y = height - padding - (d.value / maxValue) * (height - 2 * padding);
 
-      let color = 'rgb(34, 197, 94)'; // green for UP
-      if (r.status === 'DOWN') color = 'rgb(239, 68, 68)'; // red
-      if (r.status === 'SLOW') color = 'rgb(234, 179, 8)'; // yellow
+      let color = '#14B8A6'; // teal for UP
+      if (d.status === 'DOWN') color = '#DC2626'; // red
+      if (d.status === 'SLOW') color = '#D97706'; // amber
 
       return { x, y, color };
     });
