@@ -7,58 +7,191 @@ import { AuthService } from '../services/auth.service';
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
+  styles: [`
+    /* Sidebar container with deep dark background */
+    .sidebar-container {
+      background: linear-gradient(180deg, #06090f 0%, var(--color-bg-primary) 100%);
+      border-right: 1px solid rgba(6, 182, 212, 0.1);
+    }
+
+    /* Logo gradient text */
+    .logo-gradient {
+      background: linear-gradient(135deg, var(--color-accent-cyan) 0%, var(--color-accent-cyan-light) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--shadow-glow-cyan);
+    }
+
+    /* Navigation item styles */
+    .nav-item {
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--color-accent-cyan);
+      transform: scaleY(0);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-glow-cyan);
+    }
+
+    .nav-item:hover {
+      background: rgba(6, 182, 212, 0.05);
+      transform: translateX(2px);
+    }
+
+    .nav-item:hover .nav-icon {
+      color: var(--color-accent-cyan-light);
+      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.6));
+    }
+
+    /* Active nav item */
+    .nav-item-active {
+      background: rgba(6, 182, 212, 0.1);
+    }
+
+    .nav-item-active::before {
+      transform: scaleY(1);
+    }
+
+    .nav-item-active .nav-icon {
+      color: var(--color-accent-cyan);
+      filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
+    }
+
+    /* User avatar circle */
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-accent-cyan) 0%, var(--color-accent-cyan-dark) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: white;
+      box-shadow: var(--shadow-glow-cyan);
+    }
+
+    .user-avatar-collapsed {
+      width: 32px;
+      height: 32px;
+      font-size: 0.875rem;
+    }
+
+    /* Pulse dot for live monitoring */
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent-cyan);
+      border-radius: 50%;
+      animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(6, 182, 212, 0);
+      }
+    }
+
+    /* Separator line */
+    .separator {
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%);
+    }
+
+    /* Logout button hover effect */
+    .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .logout-btn:hover .logout-icon {
+      color: var(--color-accent-coral);
+      filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+    }
+
+    /* Tooltip for collapsed state */
+    .nav-tooltip {
+      position: absolute;
+      left: calc(100% + 12px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-glow-cyan);
+      z-index: 50;
+    }
+
+    .nav-item:hover .nav-tooltip,
+    .logout-btn:hover .nav-tooltip {
+      opacity: 1;
+    }
+  `],
   template: `
     <aside
-      [class]="sidebarClasses()"
-      class="bg-gray-900 text-gray-300 transition-all duration-300 ease-in-out flex flex-col h-screen"
+      [class.w-64]="!collapsed()"
+      [class.w-16]="collapsed()"
+      class="sidebar-container transition-all duration-300 ease-in-out flex flex-col h-screen"
     >
-      <!-- Branding Section -->
-      <div class="p-4 border-b border-gray-700">
+      <!-- Logo Section -->
+      <div class="p-4">
         <div class="flex items-center gap-3">
-          <!-- Monitor Icon -->
-          <div class="flex-shrink-0">
-            <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
           @if (!collapsed()) {
-            <div class="flex-1 min-w-0">
-              <h1 class="text-xl font-bold text-white truncate">HY Monitor</h1>
+            <div class="flex-1">
+              <h1 class="text-2xl font-bold tracking-tight">
+                <span class="logo-gradient">HY</span>
+                <span class="text-[var(--color-text-secondary)] ml-1 font-light">Monitor</span>
+              </h1>
+            </div>
+          } @else {
+            <div class="flex items-center justify-center w-full">
+              <span class="logo-gradient text-2xl font-bold">HY</span>
             </div>
           }
-          <!-- Toggle Button -->
-          <button
-            (click)="toggleCollapse()"
-            class="p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
-            [title]="collapsed() ? '展開側邊欄' : '收起側邊欄'"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              @if (collapsed()) {
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              } @else {
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              }
-            </svg>
-          </button>
         </div>
       </div>
 
+      <div class="separator mx-4 mb-4"></div>
+
       <!-- Navigation Items -->
-      <nav class="flex-1 p-4 overflow-y-auto">
-        <ul class="space-y-2">
+      <nav class="flex-1 px-3 overflow-y-auto">
+        <ul class="space-y-1">
           @for (item of navItems; track item.path) {
-            <li>
+            <li class="relative">
               <a
                 [routerLink]="item.path"
-                routerLinkActive="bg-indigo-600 text-white"
+                routerLinkActive="nav-item-active"
                 [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-800 transition-colors"
-                [title]="collapsed() ? item.label : ''"
+                class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg"
               >
-                <span class="flex-shrink-0" [innerHTML]="item.icon"></span>
+                <span class="nav-icon flex-shrink-0 transition-all duration-300" [innerHTML]="item.icon"></span>
                 @if (!collapsed()) {
-                  <span class="truncate">{{ item.label }}</span>
+                  <span class="truncate text-[var(--color-text-primary)] font-medium">{{ item.label }}</span>
+                  @if (item.path === '/dashboard') {
+                    <span class="pulse-dot ml-auto"></span>
+                  }
+                } @else {
+                  <span class="nav-tooltip">{{ item.label }}</span>
                 }
               </a>
             </li>
@@ -66,27 +199,64 @@ import { AuthService } from '../services/auth.service';
         </ul>
       </nav>
 
+      <div class="separator mx-4 mt-4"></div>
+
+      <!-- Toggle Button -->
+      <div class="px-3 py-3">
+        <button
+          (click)="toggleCollapse()"
+          class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg w-full"
+        >
+          <svg class="nav-icon w-5 h-5 flex-shrink-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            @if (collapsed()) {
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            } @else {
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            }
+          </svg>
+          @if (!collapsed()) {
+            <span class="truncate text-[var(--color-text-primary)] font-medium">收起選單</span>
+          } @else {
+            <span class="nav-tooltip">展開選單</span>
+          }
+        </button>
+      </div>
+
+      <div class="separator mx-4"></div>
+
       <!-- User Section -->
-      <div class="border-t border-gray-700 p-4">
+      <div class="p-3">
         @if (currentUser()) {
-          <div class="space-y-3">
+          <div class="space-y-2">
             @if (!collapsed()) {
-              <div class="px-3 py-2">
-                <p class="text-sm text-gray-400 truncate">登入使用者</p>
-                <p class="font-medium text-white truncate">{{ currentUser()!.displayName }}</p>
+              <div class="flex items-center gap-3 px-3 py-2">
+                <div [class]="userAvatarClass()">
+                  {{ userInitial() }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-[var(--color-text-muted)] truncate">登入使用者</p>
+                  <p class="font-semibold text-[var(--color-text-primary)] truncate text-sm">{{ currentUser()!.displayName }}</p>
+                </div>
+              </div>
+            } @else {
+              <div class="flex items-center justify-center py-2">
+                <div [class]="userAvatarClass()">
+                  {{ userInitial() }}
+                </div>
               </div>
             }
             <button
               (click)="handleLogout()"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-800 transition-colors w-full text-left group"
-              [title]="collapsed() ? '登出' : ''"
+              class="logout-btn relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 w-full"
             >
-              <svg class="w-5 h-5 flex-shrink-0 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="logout-icon w-5 h-5 flex-shrink-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               @if (!collapsed()) {
-                <span class="group-hover:text-red-400 transition-colors truncate">登出</span>
+                <span class="truncate text-[var(--color-text-primary)] font-medium">登出</span>
+              } @else {
+                <span class="nav-tooltip">登出</span>
               }
             </button>
           </div>
@@ -103,13 +273,19 @@ export class SidebarComponent {
   collapsedChange = output<boolean>();
 
   currentUser = computed(() => {
-    // Subscribe to currentUser$ observable
-    let user = this.authService.getCurrentUser();
-    return user;
+    return this.authService.getCurrentUser();
   });
 
-  sidebarClasses = computed(() => {
-    return this.collapsed() ? 'w-16' : 'w-64';
+  userInitial = computed(() => {
+    const user = this.currentUser();
+    if (!user?.displayName) return 'U';
+    return user.displayName.charAt(0).toUpperCase();
+  });
+
+  userAvatarClass = computed(() => {
+    return this.collapsed()
+      ? 'user-avatar user-avatar-collapsed'
+      : 'user-avatar';
   });
 
   navItems = [
