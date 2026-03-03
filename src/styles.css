@@ -1,1 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+:root {
+  /* Color System - Mission Control Theme */
+  --color-bg-primary: #0a0e1a;
+  --color-bg-secondary: #121827;
+  --color-bg-card: rgba(15, 23, 42, 0.6);
+  --color-bg-card-hover: rgba(15, 23, 42, 0.8);
+
+  --color-accent-cyan: #06b6d4;
+  --color-accent-cyan-light: #22d3ee;
+  --color-accent-cyan-dark: #0891b2;
+
+  --color-accent-amber: #f59e0b;
+  --color-accent-coral: #ef4444;
+
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  --color-border: rgba(148, 163, 184, 0.2);
+  --color-border-focus: var(--color-accent-cyan);
+
+  /* Shadows */
+  --shadow-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.3);
+  --shadow-glow-cyan-strong: 0 0 30px rgba(6, 182, 212, 0.5);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+}
+
+/* Animated background grid pattern */
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
+}
+
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-pulse 4s ease-in-out infinite;
+}
+
+/* Glassmorphism utilities */
+.glass-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  background: var(--color-bg-card-hover);
+  border-color: var(--color-accent-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-cyan);
+}
