@@ -2,39 +2,21 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { WebsiteService } from '../../../core/services/website.service';
-import { WebsiteResponse, CheckResult } from '../../../core/models/website.model';
+import { WebsiteResponse, CheckResult, HourlyStatsResponse } from '../../../core/models/website.model';
 
 @Component({
   selector: 'app-website-detail',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  styles: [`
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 10px currentColor; }
-      50% { box-shadow: 0 0 20px currentColor; }
-    }
-    .status-badge-up {
-      animation: pulse-glow 2s ease-in-out infinite;
-      color: var(--color-accent-cyan);
-    }
-    .status-badge-down {
-      animation: pulse-glow 2s ease-in-out infinite;
-      color: var(--color-accent-coral);
-    }
-    .status-badge-slow {
-      animation: pulse-glow 2s ease-in-out infinite;
-      color: var(--color-accent-amber);
-    }
-  `],
   template: `
     <div class="max-w-7xl mx-auto p-6">
       @if (loading) {
         <div class="flex items-center justify-center h-64">
-          <div class="animate-spin rounded-full h-12 w-12 border-2 border-[var(--color-accent-cyan)] border-t-transparent"></div>
+          <div class="animate-spin rounded-full h-12 w-12 border-2 border-teal-700 border-t-transparent"></div>
         </div>
       } @else if (website) {
         <!-- 返回連結 -->
-        <a routerLink="/websites" class="text-[var(--color-accent-cyan)] hover:text-[var(--color-accent-cyan-light)] flex items-center gap-2 mb-6 transition-colors group">
+        <a routerLink="/websites" class="text-stone-500 hover:text-teal-700 flex items-center gap-2 mb-6 transition-colors group">
           <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
@@ -42,13 +24,13 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
         </a>
 
         <!-- 網站資訊標題區 -->
-        <div class="glass-card rounded-xl p-6 mb-6">
-          <h1 class="text-4xl font-bold text-[var(--color-text-primary)] mb-3">{{ website.alias }}</h1>
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-6">
+          <h1 class="font-serif text-3xl text-stone-800 mb-3">{{ website.alias }}</h1>
           <a
             [href]="website.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-[var(--color-accent-cyan)] hover:text-[var(--color-accent-cyan-light)] hover:shadow-[var(--shadow-glow-cyan)] transition-all mb-4 inline-flex items-center gap-2 font-medium"
+            class="text-teal-700 hover:text-teal-800 transition-all mb-4 inline-flex items-center gap-2 font-medium"
           >
             {{ website.url }}
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,24 +41,27 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
           <div class="flex items-center gap-4 flex-wrap mt-4">
             <!-- 狀態徽章 -->
             @if (website.status === 'UP') {
-              <span class="status-badge-up inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-[var(--color-accent-cyan)]/20 text-[var(--color-accent-cyan)]">
-                UP
+              <span class="inline-flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                <span class="text-sm font-medium text-teal-700">UP</span>
               </span>
             } @else if (website.status === 'DOWN') {
-              <span class="status-badge-down inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-[var(--color-accent-coral)]/20 text-[var(--color-accent-coral)]">
-                DOWN
+              <span class="inline-flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                <span class="text-sm font-medium text-red-600">DOWN</span>
               </span>
             } @else if (website.status === 'SLOW') {
-              <span class="status-badge-slow inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-[var(--color-accent-amber)]/20 text-[var(--color-accent-amber)]">
-                SLOW
+              <span class="inline-flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span class="text-sm font-medium text-amber-600">SLOW</span>
               </span>
             }
 
             <!-- 標籤 -->
             @for (tag of website.tags; track tag.id) {
               <span
-                class="px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm"
-                [style.backgroundColor]="tag.color + '30'"
+                class="px-3 py-1 rounded-full text-xs font-medium"
+                [style.backgroundColor]="tag.color + '20'"
                 [style.color]="tag.color"
               >
                 {{ tag.name }}
@@ -85,7 +70,7 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
 
             <!-- 最後檢查時間 -->
             @if (website.lastCheckedAt) {
-              <span class="text-sm text-[var(--color-text-muted)] ml-auto">
+              <span class="text-sm text-stone-400 ml-auto">
                 最後檢查: {{ formatTime(website.lastCheckedAt) }}
               </span>
             }
@@ -95,58 +80,51 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
         <!-- 統計數據卡片 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <!-- 目前回應時間 -->
-          <div class="glass-card rounded-xl p-6 text-center">
-            <div class="text-[var(--color-text-secondary)] text-sm font-medium mb-3 uppercase tracking-wider">目前回應時間</div>
-            <div class="text-5xl font-bold text-[var(--color-accent-cyan)] mb-1">
+          <div class="bg-white border border-stone-200 rounded-xl p-6 text-center">
+            <div class="text-stone-500 text-sm font-medium mb-3 uppercase tracking-wider">目前回應時間</div>
+            <div class="font-serif text-4xl text-teal-700 mb-1">
               {{ website.responseMs ?? 0 }}
             </div>
-            <div class="text-lg text-[var(--color-text-muted)]">milliseconds</div>
+            <div class="text-sm text-stone-400">milliseconds</div>
           </div>
 
           <!-- 平均回應時間 -->
-          <div class="glass-card rounded-xl p-6 text-center">
-            <div class="text-[var(--color-text-secondary)] text-sm font-medium mb-3 uppercase tracking-wider">平均回應時間</div>
-            <div class="text-5xl font-bold text-[var(--color-accent-cyan)] mb-1">
+          <div class="bg-white border border-stone-200 rounded-xl p-6 text-center">
+            <div class="text-stone-500 text-sm font-medium mb-3 uppercase tracking-wider">平均回應時間</div>
+            <div class="font-serif text-4xl text-teal-700 mb-1">
               {{ avgResponseMs }}
             </div>
-            <div class="text-lg text-[var(--color-text-muted)]">milliseconds</div>
+            <div class="text-sm text-stone-400">milliseconds</div>
           </div>
 
           <!-- 可用性百分比 -->
-          <div class="glass-card rounded-xl p-6 text-center">
-            <div class="text-[var(--color-text-secondary)] text-sm font-medium mb-3 uppercase tracking-wider">可用性</div>
-            <div class="text-5xl font-bold text-[var(--color-accent-cyan)] mb-1">
+          <div class="bg-white border border-stone-200 rounded-xl p-6 text-center">
+            <div class="text-stone-500 text-sm font-medium mb-3 uppercase tracking-wider">可用性</div>
+            <div class="font-serif text-4xl text-teal-700 mb-1">
               {{ uptimePercent }}
             </div>
-            <div class="text-lg text-[var(--color-text-muted)]">percent</div>
+            <div class="text-sm text-stone-400">percent</div>
           </div>
         </div>
 
         <!-- 回應時間圖表 -->
         @if (history.length > 0) {
-          <div class="glass-card rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-[var(--color-text-primary)] mb-6">回應時間趨勢</h2>
+          <div class="bg-white border border-stone-200 rounded-xl p-6 mb-6">
+            <h2 class="font-semibold text-stone-800 text-lg mb-6">回應時間趨勢</h2>
             <svg class="w-full h-48" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.4" />
-                  <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.05" />
+                  <stop offset="0%" style="stop-color:#0F766E;stop-opacity:0.08" />
+                  <stop offset="100%" style="stop-color:#0F766E;stop-opacity:0.02" />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
               </defs>
 
               <!-- Grid lines -->
-              <line x1="20" y1="20" x2="20" y2="180" stroke="rgba(148, 163, 184, 0.2)" stroke-width="1"/>
-              <line x1="20" y1="180" x2="780" y2="180" stroke="rgba(148, 163, 184, 0.2)" stroke-width="1"/>
-              <line x1="20" y1="60" x2="780" y2="60" stroke="rgba(148, 163, 184, 0.1)" stroke-width="1" stroke-dasharray="4,4"/>
-              <line x1="20" y1="100" x2="780" y2="100" stroke="rgba(148, 163, 184, 0.1)" stroke-width="1" stroke-dasharray="4,4"/>
-              <line x1="20" y1="140" x2="780" y2="140" stroke="rgba(148, 163, 184, 0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="20" y1="20" x2="20" y2="180" stroke="#E7E5E4" stroke-width="1"/>
+              <line x1="20" y1="180" x2="780" y2="180" stroke="#E7E5E4" stroke-width="1"/>
+              <line x1="20" y1="60" x2="780" y2="60" stroke="#E7E5E4" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="20" y1="100" x2="780" y2="100" stroke="#E7E5E4" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="20" y1="140" x2="780" y2="140" stroke="#E7E5E4" stroke-width="1" stroke-dasharray="4,4"/>
 
               <!-- Area fill -->
               @if (chartAreaPath) {
@@ -158,9 +136,8 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
                 <polyline
                   [attr.points]="chartPoints"
                   fill="none"
-                  stroke="#06b6d4"
-                  stroke-width="2.5"
-                  filter="url(#glow)"
+                  stroke="#0F766E"
+                  stroke-width="2"
                 />
               }
 
@@ -169,65 +146,67 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
                 <circle
                   [attr.cx]="point.x"
                   [attr.cy]="point.y"
-                  r="4"
+                  r="3"
                   [attr.fill]="point.color"
-                  [attr.style]="'filter: drop-shadow(0 0 3px ' + point.color + ')'"
                 />
               }
 
               <!-- Y-axis labels -->
-              <text x="5" y="25" class="text-xs" fill="#94a3b8">{{ maxResponseMs }}ms</text>
-              <text x="5" y="185" class="text-xs" fill="#94a3b8">0ms</text>
+              <text x="5" y="25" class="text-xs" fill="#78716C">{{ maxResponseMs }}ms</text>
+              <text x="5" y="185" class="text-xs" fill="#78716C">0ms</text>
             </svg>
           </div>
         }
 
         <!-- 檢查歷史記錄表格 -->
-        <div class="glass-card rounded-xl p-6">
-          <h2 class="text-xl font-semibold text-[var(--color-text-primary)] mb-6">檢查歷史記錄</h2>
+        <div class="bg-white border border-stone-200 rounded-xl p-6">
+          <h2 class="font-semibold text-stone-800 text-lg mb-6">檢查歷史記錄</h2>
 
           @if (history.length === 0) {
-            <div class="text-center py-8 text-[var(--color-text-muted)]">尚無檢查記錄</div>
+            <div class="text-center py-8 text-stone-500">尚無檢查記錄</div>
           } @else {
             <div class="overflow-x-auto">
               <table class="min-w-full">
                 <thead>
-                  <tr class="bg-[var(--color-bg-secondary)]/60">
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">時間</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">狀態</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">HTTP 代碼</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">回應時間</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">錯誤訊息</th>
+                  <tr class="bg-stone-50">
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">時間</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">狀態</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">HTTP 代碼</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">回應時間</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">錯誤訊息</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (result of displayedHistory; track result.id; let even = $even) {
-                    <tr class="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-card-hover)] transition-colors" [class.bg-[var(--color-bg-secondary)]/30]="even">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
+                    <tr class="border-t border-stone-200" [class.bg-stone-50/50]="even">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-800">
                         {{ formatTime(result.checkedAt) }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         @if (result.status === 'UP') {
-                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-accent-cyan)]/20 text-[var(--color-accent-cyan)]">
-                            UP
+                          <span class="inline-flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                            <span class="text-sm font-medium text-teal-700">UP</span>
                           </span>
                         } @else if (result.status === 'DOWN') {
-                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-accent-coral)]/20 text-[var(--color-accent-coral)]">
-                            DOWN
+                          <span class="inline-flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            <span class="text-sm font-medium text-red-600">DOWN</span>
                           </span>
                         } @else if (result.status === 'SLOW') {
-                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-accent-amber)]/20 text-[var(--color-accent-amber)]">
-                            SLOW
+                          <span class="inline-flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span class="text-sm font-medium text-amber-600">SLOW</span>
                           </span>
                         }
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)] font-mono">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-800 font-mono">
                         {{ result.httpCode }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-accent-cyan)] font-semibold">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-teal-700 font-semibold">
                         {{ result.responseMs }} ms
                       </td>
-                      <td class="px-6 py-4 text-sm text-[var(--color-accent-coral)] font-mono">
+                      <td class="px-6 py-4 text-sm text-red-600 font-mono">
                         {{ result.errorMsg || '-' }}
                       </td>
                     </tr>
@@ -241,7 +220,7 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
               <div class="mt-6 text-center">
                 <button
                   (click)="loadMore()"
-                  class="px-6 py-3 bg-[var(--color-accent-cyan)] text-white rounded-lg hover:shadow-[var(--shadow-glow-cyan)] transition-all duration-300 font-semibold"
+                  class="border border-teal-700 text-teal-700 hover:bg-teal-50 rounded-lg px-5 py-2 transition-colors font-medium"
                 >
                   載入更多
                 </button>
@@ -250,9 +229,9 @@ import { WebsiteResponse, CheckResult } from '../../../core/models/website.model
           }
         </div>
       } @else {
-        <div class="text-center py-12 glass-card rounded-xl">
-          <div class="text-[var(--color-text-secondary)] text-lg mb-4">找不到網站資訊</div>
-          <a routerLink="/websites" class="text-[var(--color-accent-cyan)] hover:text-[var(--color-accent-cyan-light)] inline-flex items-center gap-2 font-medium">
+        <div class="text-center py-12 bg-white border border-stone-200 rounded-xl">
+          <div class="text-stone-500 text-lg mb-4">找不到網站資訊</div>
+          <a routerLink="/websites" class="text-teal-700 hover:text-teal-800 inline-flex items-center gap-2 font-medium">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -269,6 +248,7 @@ export class WebsiteDetailComponent implements OnInit {
 
   website: WebsiteResponse | null = null;
   history: CheckResult[] = [];
+  hourlyStats: HourlyStatsResponse[] = [];
   loading = true;
   websiteId = '';
   displayLimit = 50;
@@ -282,6 +262,14 @@ export class WebsiteDetailComponent implements OnInit {
 
   loadData(): void {
     this.loading = true;
+
+    // 計算日期範圍 (過去7天)
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 7);
+
+    const fromISO = fromDate.toISOString();
+    const toISO = toDate.toISOString();
 
     // 載入網站資料
     this.websiteService.getAll().subscribe({
@@ -305,15 +293,46 @@ export class WebsiteDetailComponent implements OnInit {
         this.loading = false;
       }
     });
+
+    // 載入小時統計數據
+    this.websiteService.getStats(this.websiteId, fromISO, toISO).subscribe({
+      next: (stats) => {
+        this.hourlyStats = stats;
+      },
+      error: (err) => {
+        console.error('Failed to load stats:', err);
+      }
+    });
   }
 
   get avgResponseMs(): number {
+    // 優先使用 hourlyStats 計算平均回應時間
+    if (this.hourlyStats.length > 0) {
+      const validStats = this.hourlyStats.filter(s => s.avgResponseMs !== null && s.avgResponseMs > 0);
+      if (validStats.length > 0) {
+        const totalChecks = validStats.reduce((sum, s) => sum + s.checkCount, 0);
+        const weightedSum = validStats.reduce((sum, s) => sum + (s.avgResponseMs! * s.checkCount), 0);
+        return Math.round(weightedSum / totalChecks);
+      }
+    }
+
+    // 回退到使用 history
     const valid = this.history.filter(h => h.responseMs > 0);
     if (valid.length === 0) return 0;
     return Math.round(valid.reduce((sum, h) => sum + h.responseMs, 0) / valid.length);
   }
 
   get uptimePercent(): number {
+    // 優先使用 hourlyStats 計算可用性
+    if (this.hourlyStats.length > 0) {
+      const totalChecks = this.hourlyStats.reduce((sum, s) => sum + s.checkCount, 0);
+      if (totalChecks > 0) {
+        const upChecks = this.hourlyStats.reduce((sum, s) => sum + s.upCount + s.slowCount, 0);
+        return Math.round((upChecks / totalChecks) * 1000) / 10;
+      }
+    }
+
+    // 回退到使用 history
     if (this.history.length === 0) return 0;
     const upCount = this.history.filter(h => h.status === 'UP' || h.status === 'SLOW').length;
     return Math.round((upCount / this.history.length) * 1000) / 10;
