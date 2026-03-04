@@ -43,6 +43,14 @@ export interface StatusUpdateMessage {
   checkedAt: string;
 }
 
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 export interface HourlyStatsResponse {
   hourBucket: string;
   checkCount: number;

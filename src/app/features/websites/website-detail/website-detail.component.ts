@@ -284,8 +284,8 @@ export class WebsiteDetailComponent implements OnInit {
 
     // 載入檢查歷史
     this.websiteService.getHistory(this.websiteId, 0, 100).subscribe({
-      next: (history) => {
-        this.history = history;
+      next: (page) => {
+        this.history = page.content;
         this.loading = false;
       },
       error: (err) => {
